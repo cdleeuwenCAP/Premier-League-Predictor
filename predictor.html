@@ -403,17 +403,26 @@ let teams = [];
 let scoringConfig = {};
 let requiresCode = false;
 
+// JSONP helper — bypasses CORS for GET requests to Apps Script
+function jsonp(url) {
+  return new Promise((resolve, reject) => {
+    const cb = "cb_" + Math.random().toString(36).slice(2);
+    window[cb] = (data) => { delete window[cb]; script.remove(); resolve(data); };
+    const script = document.createElement("script");
+    script.src = url + "&callback=" + cb;
+    script.onerror = reject;
+    document.head.appendChild(script);
+  });
+}
+
 async function init() {
   try {
-    // Load status + config + teams in parallel
-    const [statusRes, configRes, teamsRes] = await Promise.all([
-      fetch(`${SCRIPT_URL}?action=getStatus`),
-      fetch(`${SCRIPT_URL}?action=getConfig`),
-      fetch(`${SCRIPT_URL}?action=getTeams`),
+    // Load status + config + teams in parallel using JSONP (bypasses CORS)
+    const [status, configData, teamsData] = await Promise.all([
+      jsonp(`${SCRIPT_URL}?action=getStatus`),
+      jsonp(`${SCRIPT_URL}?action=getConfig`),
+      jsonp(`${SCRIPT_URL}?action=getTeams`),
     ]);
-    const status = await statusRes.json();
-    const configData = await configRes.json();
-    const teamsData = await teamsRes.json();
 
     document.getElementById("loading").style.display = "none";
 
@@ -627,6 +636,7 @@ async function submitPicks() {
   try {
     const res = await fetch(SCRIPT_URL, {
       method: "POST",
+      redirect: "follow",
       body: JSON.stringify({ action: "submitPick", username, joinCode, picks }),
     });
     const data = await res.json();
