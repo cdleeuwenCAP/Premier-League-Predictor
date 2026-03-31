@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PL Predictor 2025/26</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* ── TOKENS ── */
+  :root {
+    --pl-purple: #37003c;
+    --pl-green:  #00ff85;
+    --pl-white:  #f8f5ff;
+    --pl-mid:    #6b3d7e;
+    --pl-light:  #c89fd4;
+    --card-bg:   rgba(255,255,255,0.06);
+    --card-border: rgba(200,159,212,0.2);
+    --radius: 10px;
+    --font-head: 'Barlow Condensed', sans-serif;
+    --font-body: 'Barlow', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--pl-purple);
+    color: var(--pl-white);
+    font-family: var(--font-body);
+    min-height: 100vh;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(0,255,133,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 60% at 80% 80%, rgba(107,61,126,0.4) 0%, transparent 60%);
+  }
+
+  /* ── LAYOUT ── */
+  .page-wrap {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 2rem 1rem 5rem;
+  }
+
+  /* ── HEADER ── */
+  header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+  .badge {
+    display: inline-block;
+    background: var(--pl-green);
+    color: var(--pl-purple);
+    font-family: var(--font-head);
+    font-weight: 800;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 4px 14px;
+    border-radius: 100px;
+    margin-bottom: 1rem;
+  }
+  h1 {
+    font-family: var(--font-head);
+    font-weight: 800;
+    font-size: clamp(2.4rem, 8vw, 4rem);
+    line-height: 0.95;
+    letter-spacing: -1px;
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+  }
+  h1 em {
+    color: var(--pl-green);
+    font-style: normal;
+  }
+  .deadline-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid var(--card-border);
+    border-radius: 100px;
+    padding: 6px 16px;
+    font-size: 13px;
+    color: var(--pl-light);
+  }
+  .deadline-tag .dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--pl-green);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%       { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  /* ── SCORING INFO ── */
+  .scoring-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 2rem;
+  }
+  .scoring-card h3 {
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--pl-green);
+    margin-bottom: 0.875rem;
+  }
+  .score-rules {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .score-rule {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--pl-light);
+  }
+  .score-pill {
+    background: rgba(0,255,133,0.15);
+    color: var(--pl-green);
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 14px;
+    min-width: 36px;
+    text-align: center;
+    padding: 2px 8px;
+    border-radius: 6px;
+    flex-shrink: 0;
+  }
+
+  /* ── FORM ── */
+  .form-section {
+    margin-bottom: 1.5rem;
+  }
+  .form-section label {
+    display: block;
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--pl-light);
+    margin-bottom: 0.5rem;
+  }
+  .form-input {
+    width: 100%;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    padding: 0.75rem 1rem;
+    color: var(--pl-white);
+    font-family: var(--font-body);
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .form-input:focus { border-color: var(--pl-green); }
+  .form-input::placeholder { color: rgba(200,159,212,0.4); }
+
+  /* ── TABLE BUILDER ── */
+  .table-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+  }
+  .table-header h2 {
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--pl-light);
+  }
+  .hint {
+    font-size: 12px;
+    color: rgba(200,159,212,0.5);
+  }
+
+  .table-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .team-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    padding: 0.7rem 1rem;
+    cursor: grab;
+    user-select: none;
+    transition: background 0.15s, border-color 0.15s, transform 0.15s;
+    touch-action: none;
+  }
+  .team-row:active { cursor: grabbing; }
+  .team-row.dragging {
+    opacity: 0.5;
+    transform: scale(0.98);
+  }
+  .team-row.drag-over {
+    border-color: var(--pl-green);
+    background: rgba(0,255,133,0.08);
+  }
+
+  .pos-num {
+    font-family: var(--font-head);
+    font-weight: 800;
+    font-size: 20px;
+    min-width: 28px;
+    color: rgba(200,159,212,0.4);
+    text-align: right;
+    transition: color 0.15s;
+  }
+  .team-row:nth-child(-n+4) .pos-num { color: var(--pl-green); }
+  .team-row:nth-last-child(-n+3) .pos-num { color: #ff6b6b; }
+
+  .zone-label {
+    font-size: 10px;
+    font-family: var(--font-head);
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    min-width: 52px;
+    text-align: center;
+  }
+  .zone-cl   { color: var(--pl-green); background: rgba(0,255,133,0.1); padding: 2px 6px; border-radius: 4px; }
+  .zone-el   { color: #ffd166; background: rgba(255,209,102,0.1); padding: 2px 6px; border-radius: 4px; }
+  .zone-rel  { color: #ff6b6b; background: rgba(255,107,107,0.1); padding: 2px 6px; border-radius: 4px; }
+  .zone-none { min-width: 52px; }
+
+  .team-name {
+    font-weight: 500;
+    font-size: 15px;
+    flex: 1;
+  }
+
+  .drag-handle {
+    color: rgba(200,159,212,0.25);
+    font-size: 18px;
+    line-height: 1;
+  }
+
+  /* Zone dividers */
+  .zone-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(200,159,212,0.2), transparent);
+    margin: 4px 0;
+    position: relative;
+  }
+  .zone-divider span {
+    position: absolute;
+    top: -9px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--pl-purple);
+    padding: 0 8px;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    font-family: var(--font-head);
+    font-weight: 700;
+    color: rgba(200,159,212,0.4);
+  }
+
+  /* ── SUBMIT BUTTON ── */
+  .submit-btn {
+    width: 100%;
+    margin-top: 2rem;
+    padding: 1.1rem;
+    background: var(--pl-green);
+    color: var(--pl-purple);
+    border: none;
+    border-radius: var(--radius);
+    font-family: var(--font-head);
+    font-weight: 800;
+    font-size: 1.2rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s, opacity 0.2s;
+  }
+  .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,255,133,0.3); }
+  .submit-btn:active { transform: translateY(0); }
+  .submit-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+
+  /* ── STATUS MESSAGES ── */
+  .message {
+    margin-top: 1rem;
+    padding: 1rem 1.25rem;
+    border-radius: var(--radius);
+    font-size: 14px;
+    text-align: center;
+    display: none;
+  }
+  .message.success { background: rgba(0,255,133,0.12); border: 1px solid rgba(0,255,133,0.3); color: var(--pl-green); }
+  .message.error   { background: rgba(255,107,107,0.12); border: 1px solid rgba(255,107,107,0.3); color: #ff6b6b; }
+  .message.show { display: block; }
+
+  /* ── CLOSED STATE ── */
+  #closed-banner {
+    display: none;
+    text-align: center;
+    padding: 3rem 1rem;
+  }
+  #closed-banner h2 {
+    font-family: var(--font-head);
+    font-size: 2rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+  #closed-banner p { color: var(--pl-light); }
+
+  /* ── LOADING ── */
+  #loading {
+    text-align: center;
+    padding: 4rem;
+    color: var(--pl-light);
+    font-family: var(--font-head);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-size: 13px;
+  }
+  #main-form { display: none; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 480px) {
+    .score-rules { grid-template-columns: 1fr; }
+    .zone-label { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="page-wrap">
+
+  <header>
+    <div class="badge">⚽ Season 2025/26</div>
+    <h1>Premier League<br><em>Predictor</em></h1>
+    <div class="deadline-tag">
+      <span class="dot"></span>
+      <span id="deadline-text">Loading deadline...</span>
+    </div>
+  </header>
+
+  <div id="loading">Loading...</div>
+  <div id="closed-banner">
+    <h2>Submissions Closed</h2>
+    <p id="closed-reason">The deadline has passed. Check the leaderboard to see standings.</p>
+  </div>
+
+  <div id="main-form">
+    <!-- Scoring breakdown -->
+    <div class="scoring-card">
+      <h3>How scoring works</h3>
+      <div class="score-rules" id="score-rules-display">
+        <!-- populated by JS -->
+      </div>
+    </div>
+
+    <!-- Username -->
+    <div class="form-section">
+      <label for="username">Your name / handle</label>
+      <input class="form-input" type="text" id="username" placeholder="e.g. BigSam88" maxlength="30">
+    </div>
+
+    <!-- Join code (shown if required) -->
+    <div class="form-section" id="code-section" style="display:none">
+      <label for="joincode">Community join code</label>
+      <input class="form-input" type="text" id="joincode" placeholder="Enter code">
+    </div>
+
+    <!-- Table builder -->
+    <div class="table-header">
+      <h2>Your predicted table</h2>
+      <span class="hint">drag to reorder</span>
+    </div>
+
+    <ul class="table-list" id="team-list"></ul>
+
+    <button class="submit-btn" id="submit-btn" onclick="submitPicks()">Submit my prediction →</button>
+    <div class="message" id="msg"></div>
+  </div>
+
+</div>
+
+<script>
+// ── CONFIG — replace with your deployed Apps Script URL ──
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyM8bzXjYr8p-NLjpf84oaXmIE1KPfOr7hj6CdUKKyoFad8Ua8WbW9gVQL132sV9yFQ/exec";
+
+let teams = [];
+let scoringConfig = {};
+let requiresCode = false;
+
+async function init() {
+  try {
+    // Load status + config + teams in parallel
+    const [statusRes, configRes, teamsRes] = await Promise.all([
+      fetch(`${SCRIPT_URL}?action=getStatus`),
+      fetch(`${SCRIPT_URL}?action=getConfig`),
+      fetch(`${SCRIPT_URL}?action=getTeams`),
+    ]);
+    const status = await statusRes.json();
+    const configData = await configRes.json();
+    const teamsData = await teamsRes.json();
+
+    document.getElementById("loading").style.display = "none";
+
+    // Deadline display
+    const dl = new Date(status.deadline);
+    document.getElementById("deadline-text").textContent =
+      `Closes ${dl.toLocaleDateString("en-GB", { day:"numeric", month:"long", year:"numeric" })} · ${dl.toLocaleTimeString("en-GB", { hour:"2-digit", minute:"2-digit" })}`;
+
+    if (!status.open) {
+      document.getElementById("closed-banner").style.display = "block";
+      return;
+    }
+
+    // Show form
+    document.getElementById("main-form").style.display = "block";
+    scoringConfig = configData.config;
+    requiresCode = status.requiresCode;
+
+    if (requiresCode) document.getElementById("code-section").style.display = "block";
+
+    renderScoringRules(scoringConfig);
+
+    teams = teamsData.teams;
+    renderTeamList(teams);
+    initDragDrop();
+  } catch(e) {
+    document.getElementById("loading").textContent = "⚠ Could not connect. Check the SCRIPT_URL is set correctly.";
+  }
+}
+
+function renderScoringRules(cfg) {
+  const container = document.getElementById("score-rules-display");
+  const pp = cfg.positionPoints || [];
+  const t4 = cfg.top4Tiers || [];
+  const b3 = cfg.bottom3Tiers || [];
+  const rules = [
+    { pts: pp[0], label: "Exact position" },
+    { pts: pp[1], label: "1 place off" },
+    { pts: pp[2], label: "2 places off" },
+    { pts: pp[3] !== undefined ? pp[3] : 0, label: "3+ places off" },
+    { pts: cfg.championBonus, label: "Champion bonus" },
+    { pts: t4[1], label: "1 of top 4 correct" },
+    { pts: t4[2], label: "2 of top 4 correct" },
+    { pts: t4[3], label: "3 of top 4 correct" },
+    { pts: t4[4], label: "All top 4 correct" },
+    { pts: b3[1], label: "1 of bottom 3 correct" },
+    { pts: b3[2], label: "2 of bottom 3 correct" },
+    { pts: b3[3], label: "All bottom 3 correct" },
+  ];
+  container.innerHTML = rules.map(r =>
+    `<div class="score-rule">
+      <span class="score-pill">${r.pts}pt${r.pts !== 1 ? "s" : ""}</span>
+      <span>${r.label}</span>
+    </div>`
+  ).join("");
+}
+
+function getZone(pos) {
+  // pos is 1-indexed
+  if (pos <= 4)  return { cls: "zone-cl",  label: "UCL" };
+  if (pos === 5) return { cls: "zone-el",  label: "UEL" };
+  if (pos === 6) return { cls: "zone-el",  label: "UECL" };
+  if (pos >= 18) return { cls: "zone-rel", label: "REL" };
+  return { cls: "zone-none", label: "" };
+}
+
+function renderTeamList(teamArr) {
+  const ul = document.getElementById("team-list");
+  ul.innerHTML = "";
+  teamArr.forEach((team, i) => {
+    const pos = i + 1;
+    const zone = getZone(pos);
+
+    // Insert dividers at key thresholds
+    if (pos === 5 || pos === 7 || pos === 18) {
+      const divEl = document.createElement("li");
+      const label = pos === 5 ? "Europe" : pos === 7 ? "Mid table" : "Relegation";
+      divEl.className = "zone-divider";
+      divEl.innerHTML = `<span>${label}</span>`;
+      divEl.style.listStyle = "none";
+      ul.appendChild(divEl);
+    }
+
+    const li = document.createElement("li");
+    li.className = "team-row";
+    li.draggable = true;
+    li.dataset.team = team;
+    li.innerHTML = `
+      <span class="pos-num">${pos}</span>
+      <span class="zone-label ${zone.cls}">${zone.label}</span>
+      <span class="team-name">${team}</span>
+      <span class="drag-handle">⠿</span>
+    `;
+    ul.appendChild(li);
+  });
+}
+
+// ── DRAG & DROP ──
+let dragSrc = null;
+
+function initDragDrop() {
+  const ul = document.getElementById("team-list");
+
+  ul.addEventListener("dragstart", e => {
+    const row = e.target.closest(".team-row");
+    if (!row) return;
+    dragSrc = row;
+    row.classList.add("dragging");
+  });
+
+  ul.addEventListener("dragend", e => {
+    const row = e.target.closest(".team-row");
+    if (row) row.classList.remove("dragging");
+    ul.querySelectorAll(".team-row").forEach(r => r.classList.remove("drag-over"));
+  });
+
+  ul.addEventListener("dragover", e => {
+    e.preventDefault();
+    const row = e.target.closest(".team-row");
+    if (!row || row === dragSrc) return;
+    ul.querySelectorAll(".team-row").forEach(r => r.classList.remove("drag-over"));
+    row.classList.add("drag-over");
+  });
+
+  ul.addEventListener("drop", e => {
+    e.preventDefault();
+    const target = e.target.closest(".team-row");
+    if (!target || target === dragSrc) return;
+    const rows = [...ul.querySelectorAll(".team-row")];
+    const srcIdx = rows.indexOf(dragSrc);
+    const tgtIdx = rows.indexOf(target);
+    if (srcIdx < tgtIdx) target.after(dragSrc);
+    else target.before(dragSrc);
+    refreshPositions();
+  });
+
+  // Touch drag support
+  let touchY = 0;
+  ul.addEventListener("touchstart", e => {
+    const row = e.target.closest(".team-row");
+    if (!row) return;
+    dragSrc = row;
+    row.classList.add("dragging");
+    touchY = e.touches[0].clientY;
+  }, { passive: true });
+
+  ul.addEventListener("touchmove", e => {
+    if (!dragSrc) return;
+    e.preventDefault();
+    const y = e.touches[0].clientY;
+    const els = [...ul.querySelectorAll(".team-row")];
+    const target = els.find(el => {
+      const rect = el.getBoundingClientRect();
+      return y > rect.top && y < rect.bottom && el !== dragSrc;
+    });
+    els.forEach(r => r.classList.remove("drag-over"));
+    if (target) target.classList.add("drag-over");
+    touchY = y;
+  }, { passive: false });
+
+  ul.addEventListener("touchend", () => {
+    if (!dragSrc) return;
+    const target = ul.querySelector(".team-row.drag-over");
+    if (target) {
+      const rows = [...ul.querySelectorAll(".team-row")];
+      const srcIdx = rows.indexOf(dragSrc);
+      const tgtIdx = rows.indexOf(target);
+      if (srcIdx < tgtIdx) target.after(dragSrc);
+      else target.before(dragSrc);
+    }
+    dragSrc.classList.remove("dragging");
+    ul.querySelectorAll(".team-row").forEach(r => r.classList.remove("drag-over"));
+    dragSrc = null;
+    refreshPositions();
+  });
+}
+
+function refreshPositions() {
+  const rows = document.querySelectorAll(".team-row");
+  rows.forEach((row, i) => {
+    const pos = i + 1;
+    const zone = getZone(pos);
+    row.querySelector(".pos-num").textContent = pos;
+    // Update position color class
+    const posEl = row.querySelector(".pos-num");
+    posEl.style.color = pos <= 4 ? "var(--pl-green)" : pos >= 18 ? "#ff6b6b" : "rgba(200,159,212,0.4)";
+    const zoneEl = row.querySelector(".zone-label");
+    zoneEl.className = "zone-label " + zone.cls;
+    zoneEl.textContent = zone.label;
+  });
+}
+
+// ── SUBMIT ──
+async function submitPicks() {
+  const username = document.getElementById("username").value.trim();
+  const joinCode = document.getElementById("joincode").value.trim();
+  const btn = document.getElementById("submit-btn");
+  const msg = document.getElementById("msg");
+
+  msg.className = "message";
+  msg.textContent = "";
+
+  if (!username) return showMsg("Please enter your name or handle.", "error");
+
+  const picks = [...document.querySelectorAll(".team-row")].map(r => r.dataset.team);
+  if (picks.length !== 20) return showMsg("Something went wrong with the team list.", "error");
+
+  btn.disabled = true;
+  btn.textContent = "Submitting...";
+
+  try {
+    const res = await fetch(SCRIPT_URL, {
+      method: "POST",
+      body: JSON.stringify({ action: "submitPick", username, joinCode, picks }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      showMsg(`✓ Prediction submitted for ${username}! Good luck.`, "success");
+      btn.textContent = "Submitted ✓";
+    } else {
+      showMsg(data.error || "Submission failed.", "error");
+      btn.disabled = false;
+      btn.textContent = "Submit my prediction →";
+    }
+  } catch(e) {
+    showMsg("Network error — please try again.", "error");
+    btn.disabled = false;
+    btn.textContent = "Submit my prediction →";
+  }
+}
+
+function showMsg(text, type) {
+  const el = document.getElementById("msg");
+  el.textContent = text;
+  el.className = "message " + type + " show";
+}
+
+init();
+</script>
+</body>
+</html>

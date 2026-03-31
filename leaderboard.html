@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PL Predictor — Leaderboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --pl-purple: #37003c;
+    --pl-green:  #00ff85;
+    --pl-white:  #f8f5ff;
+    --pl-mid:    #6b3d7e;
+    --pl-light:  #c89fd4;
+    --card-bg:   rgba(255,255,255,0.06);
+    --card-border: rgba(200,159,212,0.2);
+    --radius: 10px;
+    --font-head: 'Barlow Condensed', sans-serif;
+    --font-body: 'Barlow', sans-serif;
+    --gold:   #ffd700;
+    --silver: #c0c0c0;
+    --bronze: #cd7f32;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--pl-purple);
+    color: var(--pl-white);
+    font-family: var(--font-body);
+    min-height: 100vh;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(0,255,133,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 60% at 80% 80%, rgba(107,61,126,0.4) 0%, transparent 60%);
+  }
+
+  .page-wrap { max-width: 860px; margin: 0 auto; padding: 2rem 1rem 5rem; }
+
+  /* ── TABS ── */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 12px;
+    padding: 4px;
+    margin-bottom: 2rem;
+  }
+  .tab-btn {
+    flex: 1;
+    padding: 0.6rem;
+    border: none;
+    border-radius: 9px;
+    background: transparent;
+    color: var(--pl-light);
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+  }
+  .tab-btn.active { background: var(--pl-green); color: var(--pl-purple); }
+
+  /* ── HEADER ── */
+  .section-title {
+    font-family: var(--font-head);
+    font-weight: 800;
+    font-size: clamp(2rem, 6vw, 3.2rem);
+    text-transform: uppercase;
+    letter-spacing: -0.5px;
+    line-height: 1;
+    margin-bottom: 0.25rem;
+  }
+  .section-title em { color: var(--pl-green); font-style: normal; }
+  .section-sub { color: var(--pl-light); font-size: 14px; margin-bottom: 1.75rem; }
+
+  /* ── LEADERBOARD ── */
+  .lb-wrap { display: none; }
+  .lb-wrap.active { display: block; }
+
+  .podium {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 2rem;
+  }
+  .podium-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    padding: 1.25rem 1rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .podium-card.p1 { border-color: rgba(255,215,0,0.4); background: rgba(255,215,0,0.06); }
+  .podium-card.p2 { border-color: rgba(192,192,192,0.3); }
+  .podium-card.p3 { border-color: rgba(205,127,50,0.3); }
+  .podium-medal {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    display: block;
+  }
+  .podium-name {
+    font-family: var(--font-head);
+    font-weight: 800;
+    font-size: 1.1rem;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+    word-break: break-all;
+  }
+  .podium-pts {
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 2rem;
+    color: var(--pl-green);
+    line-height: 1;
+  }
+  .podium-pts-label { font-size: 11px; color: var(--pl-light); letter-spacing: 1px; text-transform: uppercase; }
+
+  /* Full leaderboard table */
+  .lb-table { width: 100%; border-collapse: collapse; }
+  .lb-table th {
+    font-family: var(--font-head);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--pl-light);
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid var(--card-border);
+  }
+  .lb-table th.num { text-align: right; }
+  .lb-table td {
+    padding: 0.65rem 0.75rem;
+    font-size: 14px;
+    border-bottom: 1px solid rgba(200,159,212,0.08);
+    vertical-align: middle;
+  }
+  .lb-table td.num { text-align: right; color: var(--pl-light); font-size: 13px; }
+  .lb-table tr:hover td { background: rgba(255,255,255,0.03); cursor: pointer; }
+  .lb-table tr.top-4 td:first-child { border-left: 3px solid var(--pl-green); }
+
+  .rank-cell {
+    font-family: var(--font-head);
+    font-weight: 800;
+    font-size: 18px;
+    min-width: 36px;
+    color: rgba(200,159,212,0.5);
+  }
+  .rank-cell.r1 { color: var(--gold); }
+  .rank-cell.r2 { color: var(--silver); }
+  .rank-cell.r3 { color: var(--bronze); }
+
+  .total-pts {
+    font-family: var(--font-head);
+    font-weight: 800;
+    font-size: 18px;
+    color: var(--pl-green);
+  }
+
+  .breakdown {
+    display: inline-flex;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+  .bd-pill {
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.07);
+    color: var(--pl-light);
+  }
+
+  /* Expandable picks row */
+  .picks-row td {
+    padding: 0;
+    border-bottom: 1px solid rgba(200,159,212,0.08);
+  }
+  .picks-inner {
+    display: none;
+    padding: 0.75rem 1rem;
+    background: rgba(0,0,0,0.2);
+  }
+  .picks-inner.open { display: block; }
+  .picks-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 4px 12px;
+  }
+  .pick-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--pl-light);
+  }
+  .pick-pos {
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 14px;
+    min-width: 22px;
+    color: rgba(200,159,212,0.4);
+  }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center;
+    padding: 4rem 1rem;
+    color: var(--pl-light);
+  }
+  .empty-state h3 { font-family: var(--font-head); font-size: 1.5rem; text-transform: uppercase; margin-bottom: 0.5rem; }
+  .empty-state p { font-size: 14px; opacity: 0.6; }
+
+  /* ── ADMIN PANEL ── */
+  .admin-wrap { display: none; }
+  .admin-wrap.active { display: block; }
+
+  .admin-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    margin-bottom: 1.25rem;
+  }
+  .admin-card h3 {
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--pl-green);
+    margin-bottom: 1rem;
+  }
+
+  .field-row { margin-bottom: 0.875rem; }
+  .field-row label {
+    display: block;
+    font-size: 12px;
+    color: var(--pl-light);
+    margin-bottom: 0.35rem;
+    font-family: var(--font-head);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .field-input {
+    width: 100%;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    padding: 0.65rem 0.875rem;
+    color: var(--pl-white);
+    font-family: var(--font-body);
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .field-input:focus { border-color: var(--pl-green); }
+
+  .scoring-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .action-btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: transform 0.15s, opacity 0.2s;
+  }
+  .action-btn:hover { transform: translateY(-1px); }
+  .action-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .btn-primary { background: var(--pl-green); color: var(--pl-purple); }
+  .btn-ghost   { background: rgba(255,255,255,0.08); color: var(--pl-white); border: 1px solid var(--card-border); }
+
+  .admin-msg {
+    margin-top: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    font-size: 13px;
+    display: none;
+  }
+  .admin-msg.success { background: rgba(0,255,133,0.1); border: 1px solid rgba(0,255,133,0.3); color: var(--pl-green); display: block; }
+  .admin-msg.error   { background: rgba(255,107,107,0.1); border: 1px solid rgba(255,107,107,0.3); color: #ff6b6b; display: block; }
+
+  .admin-lock {
+    text-align: center;
+    padding: 3rem 1rem;
+  }
+  .admin-lock h3 { font-family: var(--font-head); font-size: 1.5rem; text-transform: uppercase; margin-bottom: 1rem; }
+  .admin-lock .field-input { max-width: 300px; margin: 0 auto 1rem; display: block; }
+
+  /* Refresh btn */
+  .refresh-btn {
+    float: right;
+    background: none;
+    border: 1px solid var(--card-border);
+    color: var(--pl-light);
+    border-radius: 6px;
+    padding: 4px 12px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: var(--font-head);
+    letter-spacing: 1px;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .refresh-btn:hover { border-color: var(--pl-green); color: var(--pl-green); }
+
+  @media (max-width: 520px) {
+    .podium { grid-template-columns: 1fr; }
+    .scoring-grid { grid-template-columns: 1fr; }
+    .breakdown { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="page-wrap">
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showTab('leaderboard')">🏆 Leaderboard</button>
+    <button class="tab-btn" onclick="showTab('admin')">⚙ Admin</button>
+  </div>
+
+  <!-- ── LEADERBOARD TAB ── -->
+  <div class="lb-wrap active" id="tab-leaderboard">
+    <h1 class="section-title">Season <em>Standings</em></h1>
+    <p class="section-sub" id="lb-sub">Loading...</p>
+
+    <div style="position:relative; display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem;">
+      <span id="last-updated-tag" style="font-size:12px;color:var(--pl-light);"></span>
+      <button class="refresh-btn" onclick="loadLeaderboard()">↻ Refresh</button>
+    </div>
+
+    <div id="lb-content">
+      <div class="empty-state">
+        <h3>Loading...</h3>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── ADMIN TAB ── -->
+  <div class="admin-wrap" id="tab-admin">
+    <h1 class="section-title">Admin <em>Panel</em></h1>
+    <p class="section-sub">Manage scoring, recalculate results, and control submissions.</p>
+
+    <!-- Password gate -->
+    <div id="admin-lock" class="admin-lock">
+      <h3>Admin access</h3>
+      <input class="field-input" type="password" id="admin-pw" placeholder="Admin password" onkeydown="if(event.key==='Enter')unlockAdmin()">
+      <button class="action-btn btn-primary" onclick="unlockAdmin()">Unlock →</button>
+      <div class="admin-msg" id="lock-msg"></div>
+    </div>
+
+    <div id="admin-content" style="display:none">
+
+      <!-- Recalculate -->
+      <div class="admin-card">
+        <h3>Recalculate leaderboard</h3>
+        <p style="font-size:13px;color:var(--pl-light);margin-bottom:1rem;">
+          Run this after entering the final Premier League table into the <strong>Results</strong> sheet in your Google Sheet. All picks will be scored and ranked automatically.
+        </p>
+        <button class="action-btn btn-primary" onclick="triggerRecalc()">Recalculate now →</button>
+        <div class="admin-msg" id="recalc-msg"></div>
+      </div>
+
+      <!-- Fetch live table -->
+      <div class="admin-card">
+        <h3>Fetch live table</h3>
+        <p style="font-size:13px;color:var(--pl-light);margin-bottom:1rem;">
+          Pulls the current Premier League standings from football-data.org and immediately recalculates the leaderboard. Enter your API key each time (it's never stored in the browser).
+        </p>
+        <div class="field-row">
+          <label>football-data.org API key</label>
+          <input class="field-input" type="password" id="api-key-input" placeholder="Paste your API key here">
+        </div>
+        <button class="action-btn btn-primary" onclick="triggerFetch()">Fetch live table now →</button>
+        <div class="admin-msg" id="fetch-msg"></div>
+      </div>
+
+      <!-- Scoring config reference -->
+      <div class="admin-card">
+        <h3>Scoring rules reference</h3>
+        <p style="font-size:13px;color:var(--pl-light);margin-bottom:1rem;">
+          To change scoring rules, edit the <strong>Config</strong> tab directly in your Google Sheet. Changes take effect on the next recalculation. Current rules loaded from your sheet:
+        </p>
+        <div id="config-display" class="scoring-grid">
+          <div style="color:var(--pl-light);font-size:13px;">Loading config...</div>
+        </div>
+      </div>
+
+      <!-- Submission status -->
+      <div class="admin-card">
+        <h3>Submission window</h3>
+        <p style="font-size:13px;color:var(--pl-light);margin-bottom:1rem;">
+          The deadline and join code are controlled from the <strong>Config</strong> tab in your Google Sheet. Update the "Submission deadline" row to open or close submissions.
+        </p>
+        <div id="status-display" style="font-size:13px;color:var(--pl-light);">Loading...</div>
+      </div>
+
+      <!-- How to instructions -->
+      <div class="admin-card">
+        <h3>Quick reference</h3>
+        <div style="font-size:13px;color:var(--pl-light);line-height:1.8;">
+          <p>① <strong style="color:var(--pl-white)">Add/change teams</strong> — edit the Teams tab in your Sheet</p>
+          <p>② <strong style="color:var(--pl-white)">Change deadline</strong> — edit "Submission deadline" in Config tab</p>
+          <p>③ <strong style="color:var(--pl-white)">Change join code</strong> — edit "Join code" in Config tab (blank = open)</p>
+          <p>④ <strong style="color:var(--pl-white)">Change scoring</strong> — edit any scoring row in Config tab</p>
+          <p>⑤ <strong style="color:var(--pl-white)">Enter final table</strong> — fill Position + Team in Results tab</p>
+          <p>⑥ <strong style="color:var(--pl-white)">Score everyone</strong> — click Recalculate above or use Sheet menu</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyM8bzXjYr8p-NLjpf84oaXmIE1KPfOr7hj6CdUKKyoFad8Ua8WbW9gVQL132sV9yFQ/exec";
+let adminPassword = "";
+let openRows = new Set();
+
+// ── TABS ──
+function showTab(tab) {
+  document.querySelectorAll(".lb-wrap, .admin-wrap").forEach(el => el.classList.remove("active"));
+  document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("active"));
+  document.getElementById(`tab-${tab}`).classList.add("active");
+  event.target.classList.add("active");
+  if (tab === "leaderboard") loadLeaderboard();
+  if (tab === "admin") loadAdminData();
+}
+
+// ── LEADERBOARD ──
+async function loadLeaderboard() {
+  try {
+    const res = await fetch(`${SCRIPT_URL}?action=getLeaderboard`);
+    const data = await res.json();
+    renderLeaderboard(data.leaderboard || [], data.lastUpdated);
+  } catch(e) {
+    document.getElementById("lb-content").innerHTML =
+      `<div class="empty-state"><h3>Connection error</h3><p>Check that SCRIPT_URL is set correctly.</p></div>`;
+  }
+}
+
+function renderLeaderboard(entries, lastUpdated) {
+  const sub = document.getElementById("lb-sub");
+  const content = document.getElementById("lb-content");
+  const tag = document.getElementById("last-updated-tag");
+  if (tag) tag.textContent = lastUpdated ? "Last updated: " + lastUpdated : "";
+
+  if (entries.length === 0) {
+    sub.textContent = "No scores yet — results will appear after season end.";
+    content.innerHTML = `<div class="empty-state"><h3>No results yet</h3><p>Leaderboard updates when the admin runs recalculation after the season ends.</p></div>`;
+    return;
+  }
+
+  sub.textContent = `${entries.length} player${entries.length !== 1 ? "s" : ""} ranked`;
+
+  // Podium (top 3)
+  const top3 = entries.slice(0, 3);
+  const medals = ["🥇","🥈","🥉"];
+  const pClasses = ["p1","p2","p3"];
+  let podiumHTML = `<div class="podium">`;
+  top3.forEach((e, i) => {
+    podiumHTML += `
+      <div class="podium-card ${pClasses[i]}">
+        <span class="podium-medal">${medals[i]}</span>
+        <div class="podium-name">${esc(e.username)}</div>
+        <div class="podium-pts">${e.total}</div>
+        <div class="podium-pts-label">points</div>
+      </div>`;
+  });
+  podiumHTML += `</div>`;
+
+  // Full table
+  let tableHTML = `<table class="lb-table">
+    <thead><tr>
+      <th>#</th>
+      <th>Player</th>
+      <th class="num">Pos pts</th>
+      <th class="num">Champ</th>
+      <th class="num">Top 4</th>
+      <th class="num">Bot 3</th>
+      <th class="num">Total</th>
+    </tr></thead><tbody>`;
+
+  entries.forEach((e, idx) => {
+    const rankCls = idx < 3 ? `r${idx+1}` : "";
+    const topCls = idx < 4 ? "top-4" : "";
+    const rowId = `picks-${idx}`;
+    tableHTML += `
+      <tr class="${topCls}" onclick="togglePicks(${idx})">
+        <td><span class="rank-cell ${rankCls}">${e.rank}</span></td>
+        <td><strong>${esc(e.username)}</strong>
+          <div class="breakdown">
+            <span class="bd-pill">${e.positionPts}pt pos</span>
+            ${e.championBonus ? `<span class="bd-pill">+${e.championBonus} champ</span>` : ""}
+            ${e.top4Bonus ? `<span class="bd-pill">+${e.top4Bonus} top4</span>` : ""}
+            ${e.bottom3Bonus ? `<span class="bd-pill">+${e.bottom3Bonus} bot3</span>` : ""}
+          </div>
+        </td>
+        <td class="num">${e.positionPts}</td>
+        <td class="num">${e.championBonus}</td>
+        <td class="num">${e.top4Bonus}</td>
+        <td class="num">${e.bottom3Bonus}</td>
+        <td><span class="total-pts">${e.total}</span></td>
+      </tr>
+      <tr class="picks-row" id="${rowId}">
+        <td colspan="6">
+          <div class="picks-inner" id="${rowId}-inner">
+            <div class="picks-grid">
+              ${(e.picks || []).map((team, i) =>
+                `<div class="pick-item"><span class="pick-pos">${i+1}</span>${esc(team)}</div>`
+              ).join("")}
+            </div>
+          </div>
+        </td>
+      </tr>`;
+  });
+
+  tableHTML += `</tbody></table>`;
+  content.innerHTML = podiumHTML + tableHTML;
+}
+
+function togglePicks(idx) {
+  const inner = document.getElementById(`picks-${idx}-inner`);
+  if (!inner) return;
+  inner.classList.toggle("open");
+}
+
+// ── ADMIN ──
+function unlockAdmin() {
+  const pw = document.getElementById("admin-pw").value;
+  if (!pw) return;
+  adminPassword = pw;
+  document.getElementById("admin-lock").style.display = "none";
+  document.getElementById("admin-content").style.display = "block";
+  loadAdminData();
+}
+
+async function loadAdminData() {
+  if (!adminPassword) return;
+  try {
+    const [configRes, statusRes] = await Promise.all([
+      fetch(`${SCRIPT_URL}?action=getConfig`),
+      fetch(`${SCRIPT_URL}?action=getStatus`),
+    ]);
+    const configData = await configRes.json();
+    const statusData = await statusRes.json();
+    renderConfigDisplay(configData.config);
+    renderStatusDisplay(statusData);
+  } catch(e) {}
+}
+
+function renderConfigDisplay(cfg) {
+  if (!cfg) return;
+  const pp = cfg.positionPoints || [];
+  const t4 = cfg.top4Tiers || [];
+  const b3 = cfg.bottom3Tiers || [];
+  const el = document.getElementById("config-display");
+  el.innerHTML = [
+    ["Exact position",       `${pp[0] ?? "–"}pts`],
+    ["1 place off",          `${pp[1] ?? "–"}pts`],
+    ["2 places off",         `${pp[2] ?? "–"}pts`],
+    ["3+ places off",        `${pp[3] ?? "–"}pts`],
+    ["Champion bonus",       `${cfg.championBonus ?? "–"}pts`],
+    ["Top 4: 1 correct",     `${t4[1] ?? "–"}pt`],
+    ["Top 4: 2 correct",     `${t4[2] ?? "–"}pts`],
+    ["Top 4: 3 correct",     `${t4[3] ?? "–"}pts`],
+    ["Top 4: 4 correct",     `${t4[4] ?? "–"}pts`],
+    ["Bottom 3: 1 correct",  `${b3[1] ?? "–"}pt`],
+    ["Bottom 3: 2 correct",  `${b3[2] ?? "–"}pts`],
+    ["Bottom 3: 3 correct",  `${b3[3] ?? "–"}pts`],
+    ["Join code",            cfg.joinCode ? `"${cfg.joinCode}"` : "None (open)"],
+  ].map(([label, val]) =>
+    `<div class="field-row">
+      <label>${label}</label>
+      <div style="color:var(--pl-white);font-size:14px;font-weight:500;">${val}</div>
+    </div>`
+  ).join("");
+}
+
+function renderStatusDisplay(status) {
+  const dl = new Date(status.deadline);
+  const now = new Date();
+  const open = now < dl;
+  document.getElementById("status-display").innerHTML = `
+    <p>Status: <strong style="color:${open ? "var(--pl-green)" : "#ff6b6b"}">${open ? "OPEN" : "CLOSED"}</strong></p>
+    <p>Deadline: ${dl.toLocaleDateString("en-GB", { day:"numeric", month:"long", year:"numeric" })} at ${dl.toLocaleTimeString("en-GB", {hour:"2-digit", minute:"2-digit"})}</p>
+    <p>Join code required: ${status.requiresCode ? "Yes" : "No"}</p>
+  `;
+}
+
+async function triggerRecalc() {
+  const btn = event.target;
+  const msg = document.getElementById("recalc-msg");
+  btn.disabled = true;
+  btn.textContent = "Running...";
+  msg.className = "admin-msg";
+
+  try {
+    const res = await fetch(SCRIPT_URL, {
+      method: "POST",
+      body: JSON.stringify({ action: "adminRecalc", password: adminPassword }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      msg.className = "admin-msg success";
+      msg.textContent = "✓ " + data.message;
+      loadLeaderboard();
+    } else {
+      msg.className = "admin-msg error";
+      msg.textContent = data.error || "Recalculation failed.";
+    }
+  } catch(e) {
+    msg.className = "admin-msg error";
+    msg.textContent = "Network error.";
+  }
+
+  btn.disabled = false;
+  btn.textContent = "Recalculate now →";
+}
+
+async function triggerFetch() {
+  const btn = event.target;
+  const msg = document.getElementById("fetch-msg");
+  const apiKey = document.getElementById("api-key-input").value.trim();
+
+  if (!apiKey) {
+    msg.className = "admin-msg error";
+    msg.textContent = "Enter your football-data.org API key above first.";
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = "Fetching from API...";
+  msg.className = "admin-msg";
+
+  try {
+    // Step 1: fetch directly from football-data.org in the browser
+    const apiRes = await fetch(
+      "https://api.football-data.org/v4/competitions/PL/standings",
+      { headers: { "X-Auth-Token": apiKey } }
+    );
+
+    if (apiRes.status === 403) {
+      msg.className = "admin-msg error";
+      msg.textContent = "API key rejected (403). Check your football-data.org key.";
+      btn.disabled = false; btn.textContent = "Fetch live table now →"; return;
+    }
+    if (!apiRes.ok) {
+      msg.className = "admin-msg error";
+      msg.textContent = `API error (${apiRes.status}). Try again shortly.`;
+      btn.disabled = false; btn.textContent = "Fetch live table now →"; return;
+    }
+
+    const apiData = await apiRes.json();
+    const standings = apiData.standings?.find(s => s.type === "TOTAL");
+    if (!standings) {
+      msg.className = "admin-msg error";
+      msg.textContent = "Could not read standings from API. Try again.";
+      btn.disabled = false; btn.textContent = "Fetch live table now →"; return;
+    }
+
+    // Map API names to our team names
+    const nameMap = {
+      "Arsenal FC":"Arsenal","Aston Villa FC":"Aston Villa",
+      "AFC Bournemouth":"Bournemouth","Brentford FC":"Brentford",
+      "Brighton & Hove Albion FC":"Brighton","Chelsea FC":"Chelsea",
+      "Crystal Palace FC":"Crystal Palace","Everton FC":"Everton",
+      "Fulham FC":"Fulham","Ipswich Town FC":"Ipswich Town",
+      "Leicester City FC":"Leicester City","Liverpool FC":"Liverpool",
+      "Manchester City FC":"Manchester City","Manchester United FC":"Manchester United",
+      "Newcastle United FC":"Newcastle United","Nottingham Forest FC":"Nottingham Forest",
+      "Southampton FC":"Southampton","Tottenham Hotspur FC":"Spurs",
+      "West Ham United FC":"West Ham United","Wolverhampton Wanderers FC":"Wolves",
+    };
+
+    const table = standings.table.map(e => ({
+      position: e.position,
+      team: nameMap[e.team.name] || e.team.name,
+    }));
+
+    btn.textContent = "Saving to Sheet...";
+
+    // Step 2: push to Apps Script to store + score
+    const saveRes = await fetch(SCRIPT_URL, {
+      method: "POST",
+      body: JSON.stringify({ action: "adminFetch", password: adminPassword, table }),
+    });
+    const saveData = await saveRes.json();
+
+    if (saveData.success) {
+      msg.className = "admin-msg success";
+      msg.textContent = "✓ " + saveData.message;
+      loadLeaderboard();
+    } else {
+      msg.className = "admin-msg error";
+      msg.textContent = saveData.error || "Failed to save table.";
+    }
+
+  } catch(e) {
+    msg.className = "admin-msg error";
+    msg.textContent = "Error: " + e.message;
+  }
+
+  btn.disabled = false;
+  btn.textContent = "Fetch live table now →";
+}
+
+function esc(str) {
+  if (!str) return "";
+  return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+
+// Init
+loadLeaderboard();
+</script>
+</body>
+</html>
