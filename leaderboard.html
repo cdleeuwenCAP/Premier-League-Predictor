@@ -442,8 +442,7 @@ function showTab(tab) {
 // ── LEADERBOARD ──
 async function loadLeaderboard() {
   try {
-    const res = await fetch(`${SCRIPT_URL}?action=getLeaderboard`);
-    const data = await res.json();
+    const data = await jsonp(`${SCRIPT_URL}?action=getLeaderboard`);
     renderLeaderboard(data.leaderboard || [], data.lastUpdated);
   } catch(e) {
     document.getElementById("lb-content").innerHTML =
@@ -550,12 +549,10 @@ function unlockAdmin() {
 async function loadAdminData() {
   if (!adminPassword) return;
   try {
-    const [configRes, statusRes] = await Promise.all([
-      fetch(`${SCRIPT_URL}?action=getConfig`),
-      fetch(`${SCRIPT_URL}?action=getStatus`),
+    const [configData, statusData] = await Promise.all([
+      jsonp(`${SCRIPT_URL}?action=getConfig`),
+      jsonp(`${SCRIPT_URL}?action=getStatus`),
     ]);
-    const configData = await configRes.json();
-    const statusData = await statusRes.json();
     renderConfigDisplay(configData.config);
     renderStatusDisplay(statusData);
   } catch(e) {}
@@ -610,6 +607,7 @@ async function triggerRecalc() {
   try {
     const res = await fetch(SCRIPT_URL, {
       method: "POST",
+      redirect: "follow",
       body: JSON.stringify({ action: "adminRecalc", password: adminPassword }),
     });
     const data = await res.json();
@@ -695,6 +693,7 @@ async function triggerFetch() {
     // Step 2: push to Apps Script to store + score
     const saveRes = await fetch(SCRIPT_URL, {
       method: "POST",
+      redirect: "follow",
       body: JSON.stringify({ action: "adminFetch", password: adminPassword, table }),
     });
     const saveData = await saveRes.json();
@@ -720,6 +719,18 @@ async function triggerFetch() {
 function esc(str) {
   if (!str) return "";
   return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+
+// JSONP helper — bypasses CORS for GET requests to Apps Script
+function jsonp(url) {
+  return new Promise((resolve, reject) => {
+    const cb = "cb_" + Math.random().toString(36).slice(2);
+    window[cb] = (data) => { delete window[cb]; script.remove(); resolve(data); };
+    const script = document.createElement("script");
+    script.src = url + "&callback=" + cb;
+    script.onerror = reject;
+    document.head.appendChild(script);
+  });
 }
 
 // Init
